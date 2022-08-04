@@ -226,7 +226,6 @@ public class Rambopo : MonoBehaviour {
       //_count = Rnd.Range(0, 5); DO NOT CHANGE IT FROM 0. IT CAN MAKE THE MOD IMPOSSIBLE IF DONE SO.
       _count = 0;
       CyclingL = StartCoroutine(CycleLeft());
-      CyclingR = StartCoroutine(CycleRight());
    }
 
    bool DuplicateChecker (int T, int x, int y) {
@@ -244,6 +243,7 @@ public class Rambopo : MonoBehaviour {
 
    IEnumerator CycleLeft () {
       int Count = _count;
+      CyclingR = StartCoroutine(CycleRight());
       while (true) {
          LeftSpriteR.sprite = Sprites[LeftScreen[Count % LeftScreen.Count()]];
          Count++;
