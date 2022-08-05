@@ -12,6 +12,9 @@ public class Rambopo : MonoBehaviour {
    public KMBombInfo Bomb;
    public KMAudio Audio;
 
+   public GameObject Module;
+   public GameObject[] SpriteObjs;
+
    public SpriteRenderer LeftSpriteR;
    public SpriteRenderer RightSpriteR;
 
@@ -87,6 +90,8 @@ public class Rambopo : MonoBehaviour {
 
    List<int> LeftScreen = new List<int>() { };
    List<int> RightScreen = new List<int>() { };
+
+   bool Rotated = false;
 
    int LAnswer;
    int RAnswer;
@@ -187,13 +192,24 @@ public class Rambopo : MonoBehaviour {
          throw;
       }*/
 
-      LAnswer = Tables[Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle)][Row][Col];
-      RAnswer = Tables[Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle)][Row][Col + 1];
+      Rotated = UnityEngine.Random.Range(0, 2) == 0;
+
+      if (Rotated) {
+         Module.transform.localEulerAngles = new Vector3(0f, -90f, 0f);
+         SpriteObjs[0].transform.localEulerAngles = new Vector3(0f, 0f, -90f);
+         SpriteObjs[1].transform.localEulerAngles = new Vector3(0f, 0f, -90f);
+
+         LAnswer = Tables[Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle)][Row][Col];
+         RAnswer = Tables[Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle)][Row + 1][Col];
+      } else {
+         LAnswer = Tables[Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle)][Row][Col];
+         RAnswer = Tables[Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle)][Row][Col + 1];
+      }
 
       Debug.LogFormat("[Rambopo #{0}] The correct pair should be {1}, {2}.", ModuleId, Sprites[LAnswer].name, Sprites[RAnswer].name);
-      Debug.LogFormat("[Rambopo #{0}] There are {1} fakes on the left and {2} on the right.", ModuleId, LeftFakePairs, RightFakePairs);
-      LeftScreen.Add(Tables[Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle)][Row][Col]);
-      RightScreen.Add(Tables[Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle)][Row][Col + 1]);
+      Debug.LogFormat("[Rambopo #{0}] There are {1} fakes on the {2} and {3} on the {4}.", ModuleId, LeftFakePairs, Rotated ? "bottom" : "left", RightFakePairs, Rotated ? "top" : "right");
+      LeftScreen.Add(LAnswer);
+      RightScreen.Add(RAnswer);
 
       Fakes();
    }
