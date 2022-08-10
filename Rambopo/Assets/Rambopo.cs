@@ -254,6 +254,14 @@ public class Rambopo : MonoBehaviour {
          }
       }
 
+      for (int R = 0; R < Tables[T].Length - 1; R++) {
+         for (int C = 0; C < 5; C++) {
+            if (x == Tables[T][R][C] && y == Tables[T][R + 1][C]) {
+               return true;
+            }
+         }
+      }
+
       return false;
    }
 
