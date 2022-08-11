@@ -146,6 +146,7 @@ public class Rambopo : MonoBehaviour {
    }
 
    void Start () {
+      Debug.LogFormat("[Rambopo #{0}] Version 1.1", ModuleId);
       LeftFakePairs = Rnd.Range(3, 5);
       RightFakePairs = Rnd.Range(3, 5);
       //LeftFakePairs = 3;
