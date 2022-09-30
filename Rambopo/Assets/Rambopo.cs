@@ -190,7 +190,7 @@ public class Rambopo : MonoBehaviour
         //RightCycle = 2;
         //CommonTime = .3f;
         CommonTime = Rnd.Range(1.5f, 2.5f);
-        Row = Rnd.Range(0, 5);
+        Row = Rnd.Range(0, 4);
         Col = Rnd.Range(0, 4);
 
         if (LeftCycle == RightCycle)
