@@ -113,6 +113,8 @@ public class Rambopo : MonoBehaviour
     private bool _switchDir;
     private int _count;
 
+    // For Twitch Plays
+
     private bool TwitchPlaysActive;
     private string[] _leftLetters;
     private string[] _rightLetters;
@@ -168,8 +170,6 @@ public class Rambopo : MonoBehaviour
         RightFakePairs = Rnd.Range(3, 5);
         _leftLetters = Enumerable.Range(0, 26).Select(i => _alphabet[i].ToString()).ToArray().Shuffle().Take(LeftFakePairs + 1).ToArray();
         _rightLetters = Enumerable.Range(0, 26).Select(i => _alphabet[i].ToString()).ToArray().Shuffle().Take(RightFakePairs + 1).ToArray();
-        //LeftFakePairs = 3;
-        //RightFakePairs = 3;
 
         Module.OnActivate += delegate ()
         {
@@ -379,21 +379,20 @@ public class Rambopo : MonoBehaviour
         var parameters = command.ToLowerInvariant().Split(' ');
         if (parameters[0] != "submit" || parameters[1] != "at" || parameters[2].Length != 2)
             yield break;
-        yield return null;
-        var elapsed = 0f;
-        var duration = 20f;
-        while (elapsed < duration)
+        var left = parameters[2][0].ToString().ToUpperInvariant();
+        var right = parameters[2][1].ToString().ToUpperInvariant();
+        if (!_leftLetters.Contains(left) || !_rightLetters.Contains(right))
         {
-            if (parameters[2][0].ToString().ToUpperInvariant() == TwitchPlaysTexts[0].text && parameters[2][1].ToString().ToUpperInvariant() == TwitchPlaysTexts[1].text)
-            {
-                SwitchKMS.OnInteract();
-                yield break;
-            }
+            yield return "sendtochaterror The letter pair " + left + right + " could not be found!";
+            yield break;
+        }
+        yield return null;
+        while (!(left == TwitchPlaysTexts[0].text && right == TwitchPlaysTexts[1].text))
+        {
             yield return null;
             yield return "trycancel";
-            elapsed += Time.deltaTime;
         }
-        yield return "sendtochaterror The letter pair " + parameters[2].ToUpperInvariant() + " could not be found!";
+        SwitchKMS.OnInteract();
         yield break;
     }
 
