@@ -85,7 +85,7 @@ public class Rambopo : MonoBehaviour {
    int Row;
    int Col;
 
-   int[] SelectedPair = { 0, 0 };
+   List<int[]> OtherAllowedPairs = new List<int[]>();
 
    int LeftFakePairs;
    int RightFakePairs;
@@ -132,15 +132,22 @@ public class Rambopo : MonoBehaviour {
    }
 
    void SwitchFlip () {
-      _switchDir = !_switchDir;
-      Audio.PlaySoundAtTransform("Switch" + (_switchDir ? "1" : "2"), transform);
-      StartCoroutine(SwitchFlipAnimation(_switchDir ? 0 : 30, _switchDir ? 30 : 0));
-      if (LeftSpriteR.sprite == Sprites[LAnswer] && RightSpriteR.sprite == Sprites[RAnswer]) {
-         Solve();
-      }
-      else {
-         Strike();
-      }
+        _switchDir = !_switchDir;
+        Audio.PlaySoundAtTransform("Switch" + (_switchDir ? "1" : "2"), transform);
+        StartCoroutine(SwitchFlipAnimation(_switchDir ? 0 : 30, _switchDir ? 30 : 0));
+        if (LeftSpriteR.sprite == Sprites[LAnswer] && RightSpriteR.sprite == Sprites[RAnswer]) {
+            Debug.LogFormat("[Rambopo #{0}] Intended solution submitted.", ModuleId);
+            Solve();
+        }
+        else if (OtherAllowedPairs.Any(a => LeftSpriteR.sprite == Sprites[LeftScreen[a.First()]] && RightSpriteR.sprite == Sprites[LeftScreen[a.Last()]])) {
+            Debug.LogFormat("[Rambopo #{0}] Non-unique solution accepted: {0}, {1}", ModuleId, Sprites[LeftScreen[LeftCycle]].name, Sprites[RightScreen[RightCycle]].name);
+            Solve();
+        }
+        else
+        {
+            Debug.LogFormat("[Rambopo #{0}] Denied combination: {1}, {2}", ModuleId, Sprites[LeftScreen[LeftCycle]].name, Sprites[RightScreen[RightCycle]].name);
+            Strike();
+        }
    }
 
    void Solve () {
@@ -157,7 +164,7 @@ public class Rambopo : MonoBehaviour {
    }
 
    void Start () {
-      Debug.LogFormat("[Rambopo #{0}] Version 1.1", ModuleId);
+      Debug.LogFormat("[Rambopo #{0}] Version 1.2", ModuleId);
       LeftFakePairs = Rnd.Range(3, 5);
       RightFakePairs = Rnd.Range(3, 5);
       _leftLetters = Enumerable.Range(0, 26).Select(i => _alphabet[i].ToString()).ToArray().Shuffle().Take(LeftFakePairs + 1).ToArray();
@@ -173,95 +180,159 @@ public class Rambopo : MonoBehaviour {
    }
 
    void Generate () {
-      LeftCycle = Rnd.Range(1, 4);
-      RightCycle = Rnd.Range(1, 4);
-      //LeftCycle = 3;
-      //RightCycle = 2;
-      //CommonTime = .3f;
-      CommonTime = Rnd.Range(1.5f, 2.5f);
-      Row = Rnd.Range(0, 4);
-      Col = Rnd.Range(0, 4);
+        LeftCycle = Rnd.Range(1, 4);
+        RightCycle = Rnd.Range(1, 4);
+        //LeftCycle = 3;
+        //RightCycle = 2;
+        //CommonTime = .3f;
+        CommonTime = Rnd.Range(1.5f, 2.5f);
+        Row = Rnd.Range(0, 4);
+        Col = Rnd.Range(0, 4);
 
-      if (LeftCycle == RightCycle) {
-         if (Rnd.Range(0, 7) == 0) {
+        if (LeftCycle == RightCycle) {
+            if (Rnd.Range(0, 7) == 0) {
             LeftCycle = 1;
             RightCycle = 1;
             CommonTime = Rnd.Range(.75f, 1f);
-         }
-         else {
+            }
+            else {
             do {
-               LeftCycle = Rnd.Range(1, 4);
-               RightCycle = Rnd.Range(1, 4);
+                LeftCycle = Rnd.Range(1, 4);
+                RightCycle = Rnd.Range(1, 4);
             } while (LeftCycle == RightCycle);
-         }
-      }
+            }
+        }
 
-      /*if (LeftCycle + RightCycle == 5) {
-         LeftFakePairs = 4;
-         RightFakePairs = 4;
-      }*/
-      Debug.LogFormat("[Rambopo #{0}] The ratio is {1}/{2}", ModuleId, LeftCycle, RightCycle);
-      /*try {
-         LeftScreen.Add(Tables[Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle)][Row][Col]);
-         RightScreen.Add(Tables[Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle)][Row][Col + 1]);
-      }
-      catch (Exception) {
-         Debug.Log(LeftCycle * 10 + RightCycle);
-         Debug.Log(Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle));
-         throw;
-      }*/
+        /*if (LeftCycle + RightCycle == 5) {
+            LeftFakePairs = 4;
+            RightFakePairs = 4;
+        }*/
+        Debug.LogFormat("[Rambopo #{0}] The ratio selected for the screens is {1}/{2}", ModuleId, LeftCycle, RightCycle);
+        /*try {
+            LeftScreen.Add(Tables[Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle)][Row][Col]);
+            RightScreen.Add(Tables[Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle)][Row][Col + 1]);
+        }
+        catch (Exception) {
+            Debug.Log(LeftCycle * 10 + RightCycle);
+            Debug.Log(Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle));
+            throw;
+        }*/
 
-      Rotated = UnityEngine.Random.Range(0, 2) == 0;
+        Rotated = Rnd.Range(0, 2) == 0;
+        var idxRatioList = Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle);
 
-      if (Rotated) {
-         ModuleObj.transform.localEulerAngles = new Vector3(0f, -90f, 0f);
-         SpriteObjs[0].transform.localEulerAngles = new Vector3(0f, 0f, -90f);
-         SpriteObjs[1].transform.localEulerAngles = new Vector3(0f, 0f, -90f);
+        if (Rotated) {
+            ModuleObj.transform.localEulerAngles = new Vector3(0f, -90f, 0f);
+            SpriteObjs[0].transform.localEulerAngles = new Vector3(0f, 0f, -90f);
+            SpriteObjs[1].transform.localEulerAngles = new Vector3(0f, 0f, -90f);
 
-         LAnswer = Tables[Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle)][Row][Col];
-         RAnswer = Tables[Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle)][Row + 1][Col];
-      }
-      else {
-         LAnswer = Tables[Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle)][Row][Col];
-         RAnswer = Tables[Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle)][Row][Col + 1];
-      }
+            LAnswer = Tables[idxRatioList][Row][Col];
+            RAnswer = Tables[idxRatioList][Row + 1][Col];
+        }
+        else {
+            LAnswer = Tables[idxRatioList][Row][Col];
+            RAnswer = Tables[idxRatioList][Row][Col + 1];
+        }
 
-      Debug.LogFormat("[Rambopo #{0}] The correct pair should be {1}, {2}.", ModuleId, Sprites[LAnswer].name, Sprites[RAnswer].name);
-      Debug.LogFormat("[Rambopo #{0}] There are {1} fakes on the {2} and {3} on the {4}.", ModuleId, LeftFakePairs, Rotated ? "bottom" : "left", RightFakePairs, Rotated ? "top" : "right");
-      LeftScreen.Add(LAnswer);
-      RightScreen.Add(RAnswer);
+        Debug.LogFormat("[Rambopo #{0}] The expected pair should be {1}, {2}.", ModuleId, Sprites[LAnswer].name, Sprites[RAnswer].name);
+        Debug.LogFormat("[Rambopo #{0}] There are {1} fakes on the {2} and {3} on the {4}.", ModuleId, LeftFakePairs, Rotated ? "bottom" : "left", RightFakePairs, Rotated ? "top" : "right");
+        LeftScreen.Add(LAnswer);
+        RightScreen.Add(RAnswer);
 
-      Fakes();
+        Fakes();
    }
 
    void Fakes () {
-      int[] temp = Enumerable.Range(0, 70).ToArray().Shuffle();
-      int index = 0;
+        
+        var idxRatioList = Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle);
+        var allPairsCurRatio = new List<int[]>();
+        if (Rotated)
+        {
+            for (var row = 0; row < 4; row++)
+                for (var col = 0; col < 5; col++)
+                {
+                    var nextPair = new[] { Tables[idxRatioList][row][col], Tables[idxRatioList][row + 1][col] };
+                    if (!allPairsCurRatio.Any(a => a.SequenceEqual(nextPair)))
+                        allPairsCurRatio.Add(nextPair);
+                }
+        }
+        else
+        {
+            for (var row = 0; row < 5; row++)
+                for (var col = 0; col < 4; col++)
+                {
+                    var nextPair = new[] { Tables[idxRatioList][row][col], Tables[idxRatioList][row][col + 1] };
+                    if (!allPairsCurRatio.Any(a => a.SequenceEqual(nextPair)))
+                        allPairsCurRatio.Add(nextPair);
+                }
+        }
 
+        var attemptCount = 1;
+        retryFakes:
+        int[] temp = Enumerable.Range(0, 70).ToArray().Shuffle();
+        int index = 0;
 
-      while (LeftScreen.Count() != 1 + LeftFakePairs) {
-         for (int i = 0; i < LeftScreen.Count(); i++) {
+        while (LeftScreen.Count() < 1 + LeftFakePairs) {
+            for (int i = 0; i < LeftScreen.Count(); i++) {
             if ((temp[index] / 10 == LeftScreen[0] / 10 && DuplicateChecker(Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle), temp[index], LeftScreen[i])) || LeftScreen.Contains(temp[index])) {
-               continue;
+                continue;
             }
-         }
-         LeftScreen.Add(temp[index]);
-         index++;
-      }
+            }
+            LeftScreen.Add(temp[index]);
+            index = (index + 1) % 70;
+        }
 
-      while (RightScreen.Count() != 1 + RightFakePairs) {
-         for (int i = 0; i < RightScreen.Count(); i++) {
+        while (RightScreen.Count() < 1 + RightFakePairs) {
+            for (int i = 0; i < RightScreen.Count(); i++) {
             if ((temp[index] / 10 == RightScreen[0] / 10 && DuplicateChecker(Array.IndexOf(RatioList, LeftCycle * 10 + RightCycle), RightScreen[i], temp[index])) || RightScreen.Contains(temp[index])) {
-               continue;
+                continue;
             }
-         }
-         RightScreen.Add(temp[index]);
-         index++;
-      }
+            }
+            RightScreen.Add(temp[index]);
+            index = (index + 1) % 70;
+        }
+        var SolutionUnique = true;
 
-      //_count = Rnd.Range(0, 5); DO NOT CHANGE IT FROM 0. IT CAN MAKE THE MOD IMPOSSIBLE IF DONE SO.
-      _count = 0;
-      CyclingL = StartCoroutine(CycleLeft());
+        for (var x = 0; x < RightScreen.Count; x++)
+            for (var y = 0; y < LeftScreen.Count; y++)
+            {
+                if (x == 0 && y == 0) continue;
+                SolutionUnique &= !allPairsCurRatio.Any(a => (a.Last() == RightScreen[x] && a.First() == LeftScreen[y]) || (a.Last() == LeftScreen[y] && a.First() == RightScreen[x]));
+            }
+        if (!SolutionUnique)
+        {
+            if (attemptCount < 20)
+            {
+                RightScreen.Clear();
+                RightScreen.Add(RAnswer);
+                LeftScreen.Clear();
+                LeftScreen.Add(LAnswer);
+                attemptCount++;
+                goto retryFakes;
+            }
+            else
+            {
+                Debug.LogFormat("[Rambopo #{0}] {1} attempt(s) taken. Non-unique solutions detected.", ModuleId, attemptCount);
+                for (var x = 0; x < RightScreen.Count; x++)
+                    for (var y = 0; y < LeftScreen.Count; y++)
+                    {
+                        if (x == 0 && y == 0) continue;
+                        if (allPairsCurRatio.Any(a => (a.Last() == RightScreen[x] && a.First() == LeftScreen[y]) || (a.Last() == LeftScreen[y] && a.First() == RightScreen[x])))
+                        {
+                            OtherAllowedPairs.Add(new[] { y, x });
+                        }
+                    }
+                Debug.LogFormat("<Rambopo #{0}]> {1}", ModuleId, OtherAllowedPairs.Select(a => string.Format("[{0},{1}]", Sprites[LeftScreen[a.First()]].name, Sprites[RightScreen[a.Last()]].name)).Join(";"));
+            }
+        }
+        else
+            Debug.LogFormat("[Rambopo #{0}] {1} attempt(s) taken to generate a unique case.", ModuleId, attemptCount);
+        Debug.LogFormat("[Rambopo #{0}] The sprites displayed on the {1} screen are {2}.", ModuleId, Rotated ? "top" : "right", RightScreen.Select(a => Sprites[a].name).Join(", "));
+        Debug.LogFormat("[Rambopo #{0}] The sprites displayed on the {1} screen are {2}.", ModuleId, Rotated ? "bottom" : "right", LeftScreen.Select(a => Sprites[a].name).Join(", "));
+
+        //_count = Rnd.Range(0, 5); DO NOT CHANGE IT FROM 0. IT CAN MAKE THE MOD IMPOSSIBLE IF DONE SO.
+        _count = 0;
+        CyclingL = StartCoroutine(CycleLeft());
    }
 
    bool DuplicateChecker (int T, int x, int y) {
