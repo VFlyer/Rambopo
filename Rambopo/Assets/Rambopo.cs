@@ -328,7 +328,7 @@ public class Rambopo : MonoBehaviour {
         else
             Debug.LogFormat("[Rambopo #{0}] {1} attempt(s) taken to generate a unique case.", ModuleId, attemptCount);
         Debug.LogFormat("[Rambopo #{0}] The sprites displayed on the {1} screen are {2}.", ModuleId, Rotated ? "top" : "right", RightScreen.Select(a => Sprites[a].name).Join(", "));
-        Debug.LogFormat("[Rambopo #{0}] The sprites displayed on the {1} screen are {2}.", ModuleId, Rotated ? "bottom" : "right", LeftScreen.Select(a => Sprites[a].name).Join(", "));
+        Debug.LogFormat("[Rambopo #{0}] The sprites displayed on the {1} screen are {2}.", ModuleId, Rotated ? "bottom" : "left", LeftScreen.Select(a => Sprites[a].name).Join(", "));
 
         //_count = Rnd.Range(0, 5); DO NOT CHANGE IT FROM 0. IT CAN MAKE THE MOD IMPOSSIBLE IF DONE SO.
         _count = 0;
